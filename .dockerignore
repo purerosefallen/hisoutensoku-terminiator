@@ -109,4 +109,3 @@ dist
 .dockerignore
 .gitignore
 Dockerfile
-/udpflood
