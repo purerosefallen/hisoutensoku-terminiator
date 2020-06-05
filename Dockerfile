@@ -11,7 +11,7 @@ FROM node:buster-slim
 RUN npm -g install typescript ts-node
 
 RUN apt update && \
-	apt -y install build-essential && \
+	apt -y install build-essential python3 && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=builder /usr/src/app/bin/Release/udpflood /usr/local/bin/
