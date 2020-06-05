@@ -38,6 +38,17 @@ function attack(address: string, port: number): Promise<void> {
 	setTimeout(() => {
 		attackProcess.kill();
 	}, config.attackTimeout);
+	attackProcess.stdout.setEncoding("utf-8");
+	attackProcess.stdout.on("data", log.info);
+	attackProcess.stderr.setEncoding("utf-8");
+	attackProcess.stderr.on("data", log.warn);
+	attackProcess.on("error", (error) => {
+		log.info(`Attack of ${address}:${port} errored: ${error.message}`);
+		if (!check) {
+			check = true;
+			done();
+		}
+	});
 	return new Promise(done => {
 		let check = false;
 		attackProcess.on("exit", (code, signal) => {
