@@ -1,0 +1,32 @@
+{
+  "name": "hisoutensoku-terminiator",
+  "version": "1.0.0",
+  "description": "I hate hisoutensoku",
+  "main": "run.js",
+  "scripts": {
+    "start": "ts-node run.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/purerosefallen/hisoutensoku-terminiator.git"
+  },
+  "keywords": [
+    "hisoutensoku",
+    "coolq"
+  ],
+  "author": "Nanahira",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/purerosefallen/hisoutensoku-terminiator/issues"
+  },
+  "homepage": "https://github.com/purerosefallen/hisoutensoku-terminiator#readme",
+  "dependencies": {
+    "@types/bunyan": "^1.8.6",
+    "@types/underscore": "^1.10.0",
+    "@types/yaml": "^1.9.7",
+    "bunyan": "^1.8.12",
+    "cqhttp": "^1.2.0",
+    "underscore": "^1.10.2",
+    "yaml": "^1.10.0"
+  }
+}
