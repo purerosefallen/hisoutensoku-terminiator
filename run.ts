@@ -39,9 +39,13 @@ function attack(address: string, port: number): Promise<void> {
 		attackProcess.kill();
 	}, config.attackTimeout);
 	attackProcess.stdout.setEncoding("utf-8");
-	attackProcess.stdout.on("data", log.info);
+	attackProcess.stdout.on("data", (data) => {
+		log.info(`${address}:${port} STDOUT =>`, data);
+	});
 	attackProcess.stderr.setEncoding("utf-8");
-	attackProcess.stderr.on("data", log.warn);
+	attackProcess.stderr.on("data", (data) => {
+		log.info(`${address}:${port} STDERR =>`, data);
+	});
 	return new Promise(done => {
 		let check = false;
 		attackProcess.on("exit", (code, signal) => {
