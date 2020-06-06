@@ -22,10 +22,12 @@
   "homepage": "https://github.com/purerosefallen/hisoutensoku-terminiator#readme",
   "dependencies": {
     "@types/bunyan": "^1.8.6",
+    "@types/moment": "^2.13.0",
     "@types/underscore": "^1.10.0",
     "@types/yaml": "^1.9.7",
     "bunyan": "^1.8.12",
     "cqhttp": "^1.2.0",
+    "moment": "^2.26.0",
     "udp-proxy": "^1.2.0",
     "underscore": "^1.10.2",
     "yaml": "^1.10.0"

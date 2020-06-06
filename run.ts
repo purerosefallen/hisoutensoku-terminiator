@@ -5,6 +5,7 @@ import * as _ from "underscore";
 import * as yaml from "yaml";
 import { spawn } from "child_process";
 import { attack } from "./attacker";
+import * as moment from "moment";
 
 interface CoolQConfig {
 	apiRoot: string;
@@ -39,13 +40,17 @@ async function startAttack(address: string, port: number): Promise<boolean> {
 		return false;
 	}
 	log.info(`Attack of ${address}:${port} started.`);
-	const err = await attack(address, port, config.attackTimeout);
-	if (err) {
-		log.warn(`Attack of ${address}:${port} failed: ${err}`);
-	} else {
-		log.warn(`Attack of ${address}:${port} succeeded.`);
+	let curTime: moment.Moment = moment();
+	while (moment().diff(curTime) <= config.attackTimeout) {
+		const err = await attack(address, port, 1000);
+		if (err) {
+			log.warn(`Attack of ${address}:${port} failed: ${err}`);
+		} else {
+			log.warn(`Attack of ${address}:${port} succeeded.`);
+		}
 	}
-	return !err;
+	log.info(`Attack of ${address}:${port} finished.`);
+	return true;
 }
 
 async function messageHandler(data: any): Promise<void> {
