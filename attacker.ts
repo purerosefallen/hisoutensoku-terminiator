@@ -80,7 +80,9 @@ export class Attacker {
 	waitForReply(messageToWait: number[], intervalMessage?: number[]): Promise<boolean> {
 		let intv: NodeJS.Timeout = null;
 		if (intervalMessage) {
-			intv = setInterval(this.sendMessage, 500, intervalMessage);
+			intv = setInterval(async () => {
+				await this.sendMessage(intervalMessage);
+			}, 500);
 		}
 		return new Promise(done => {
 			this.currentWait = (msg: Buffer, rinfo: any) => {
