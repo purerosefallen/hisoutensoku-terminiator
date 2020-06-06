@@ -43,7 +43,12 @@ async function startAttack(address: string, port: number): Promise<boolean> {
 	let curTime: moment.Moment = moment();
 	while (moment().diff(curTime) <= config.attackTimeout) {
 		const attacker = new Attacker(address, port, 1000);
-		const err = await attacker.attack();
+		let err;
+		try {
+			err = await attacker.attack();
+		} catch(e) {
+			err = `Error: ${e.toString()}`;
+		}
 		if (err) {
 			log.warn(`Attack of ${address}:${port} failed: ${err}`);
 		} else {
