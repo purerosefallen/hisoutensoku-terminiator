@@ -24,3 +24,5 @@ server.on('proxyMsg', function (message: Buffer, sender, peer) {
 	inbound.push(bufferArray);
 	console.log("inbound", bufferArray);
 });
+
+console.log(`127.0.0.1:${listen}`);
