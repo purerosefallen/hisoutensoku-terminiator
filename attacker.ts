@@ -65,12 +65,14 @@ export class Attacker {
 	port: number;
 	timeout: number;
 	socket: dgram.Socket;
+	error: any;
 	currentWait: (msg: Buffer, rinfo: any) => void;
 	constructor(address: string, port: number, timeout: number) {
 		this.address = address;
 		this.port = port;
 		this.timeout = timeout;
 		this.currentWait = null;
+		this.error = null;
 	}
 	sendMessage(message: number[]): Promise<any> {
 		return new Promise(done => {
@@ -142,8 +144,14 @@ export class Attacker {
 			if (this.currentWait) {
 				this.currentWait(msg, rinfo);
 			}
+		});
+		this.socket.on("error", (err) => {
+			this.error = err;
 		})
 		for (let step of AttackRoutine) {
+			if (this.error) {
+				return `Error: ${this.error.toString()}`;
+			}
 			err = await this.performStep(step);
 			if (err) {
 				break;
