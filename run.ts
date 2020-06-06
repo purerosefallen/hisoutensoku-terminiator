@@ -39,7 +39,7 @@ async function startAttack(address: string, port: number): Promise<boolean> {
 		return false;
 	}
 	log.info(`Attack of ${address}:${port} started.`);
-	const err = await attack(address, port);
+	const err = await attack(address, port, config.attackTimeout);
 	if (err) {
 		log.warn(`Attack of ${address}:${port} failed: ${err}`);
 	} else {
