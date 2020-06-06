@@ -4,7 +4,7 @@ import * as CQHttp from "cqhttp";
 import * as _ from "underscore";
 import * as yaml from "yaml";
 import { spawn } from "child_process";
-import { attack } from "./attacker";
+import { Attacker } from "./attacker";
 import * as moment from "moment";
 
 interface CoolQConfig {
@@ -42,7 +42,8 @@ async function startAttack(address: string, port: number): Promise<boolean> {
 	log.info(`Attack of ${address}:${port} started.`);
 	let curTime: moment.Moment = moment();
 	while (moment().diff(curTime) <= config.attackTimeout) {
-		const err = await attack(address, port, 1000);
+		const attacker = new Attacker(address, port, 1000);
+		const err = await attacker.attack();
 		if (err) {
 			log.warn(`Attack of ${address}:${port} failed: ${err}`);
 		} else {
