@@ -5,7 +5,6 @@ RUN apt update && \
 	apt -y install build-essential python3 && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=builder /usr/src/app/bin/Release/udpflood /usr/local/bin/
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci
