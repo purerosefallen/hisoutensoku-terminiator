@@ -1,5 +1,5 @@
 FROM node:buster-slim
-RUN npm -g install typescript ts-node
+RUN npm -g install typescript
 
 RUN apt update && \
 	apt -y install build-essential python3 && \
@@ -7,6 +7,7 @@ RUN apt update && \
 
 WORKDIR /usr/src/app
 COPY package*.json ./
-RUN npm ci
+RUN npm ci && \
+	npm run build
 COPY . ./
-CMD ["ts-node", "./run.ts"]
+CMD ["node", "./run.js"]

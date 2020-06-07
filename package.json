@@ -4,7 +4,8 @@
   "description": "I hate hisoutensoku",
   "main": "run.js",
   "scripts": {
-    "start": "ts-node run.ts"
+    "build": "tsc",
+    "start": "node run.js"
   },
   "repository": {
     "type": "git",
