@@ -1,0 +1,7 @@
+{
+	"compileOnSave": true,
+	"allowJs": true,
+	"include": [
+		"*.ts"
+	]
+}
