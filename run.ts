@@ -26,7 +26,7 @@ const log = bunyan.createLogger({
 	name: "hisoutensoku-terminator"
 });
 
-let CoolQ: any, config: Config;
+let CoolQ: CQHttp, config: Config;
 
 function sleep(time: number): Promise<void> {
 	return new Promise((resolve, reject) => {
