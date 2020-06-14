@@ -1,11 +1,11 @@
-import * as bunyan from "bunyan";
-import * as fs from "fs";
-import * as CQHttp from "cqhttp";
-import * as _ from "underscore";
-import * as yaml from "yaml";
+import bunyan from "bunyan";
+import fs from "fs";
+import CQHttp from "cqhttp";
+import _ from "underscore";
+import yaml from "yaml";
 import { spawn } from "child_process";
 import { Attacker } from "./attacker";
-import * as moment from "moment";
+import moment from "moment";
 
 interface CoolQConfig {
 	apiRoot: string;

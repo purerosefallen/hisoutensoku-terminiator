@@ -1,5 +1,5 @@
-import * as dgram from "dgram";
-import * as _ from "underscore";
+import dgram from "dgram";
+import _ from "underscore";
 
 const messageStage1 = [
 	1, 2, 0, 42, 49, 127, 0, 0, 1, 0,

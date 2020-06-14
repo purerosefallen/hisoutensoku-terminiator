@@ -1,4 +1,10 @@
 {
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "esnext",
+		"esModuleInterop": true,
+		"sourceMap": true
+	},
 	"compileOnSave": true,
 	"allowJs": true,
 	"include": [

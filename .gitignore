@@ -106,3 +106,4 @@ dist
 /*.js
 /config.yaml
 /*.txt
+/*.js.map
