@@ -1,6 +1,6 @@
 import bunyan from "bunyan";
 import fs from "fs";
-import { CQWebSocket } from "cq-websocket";
+import { CQWebSocket, CQEvent, CQTag } from "cq-websocket";
 import _ from "underscore";
 import yaml from "yaml";
 import { spawn } from "child_process";
@@ -20,7 +20,7 @@ interface Config {
 	coolq: CoolQConfig;
 	floodQQGroups: Array<number>;
 	attackTimeout: number;
-	addressWhitelist: string[]
+	addressWhitelist: string[];
 }
 
 const log = bunyan.createLogger({
@@ -60,7 +60,7 @@ async function startAttack(address: string, port: number): Promise<boolean> {
 	return true;
 }
 
-async function messageHandler(data: any): Promise<void> {
+async function messageHandler(event: CQEvent, data: any, tags: CQTag[]): Promise<void> {
 	const groupID: number = data.group_id;
 	if (!groupID || !_.contains(config.floodQQGroups, groupID)) {
 		return;
@@ -83,7 +83,17 @@ async function main(): Promise<void> {
 	CoolQ = new CQWebSocket(config.coolq);
 	CoolQ.on("ready", async () => {
 		log.info("bot init finished.");
-	})
+	});
+	CoolQ.on("error", async (err) => {
+		log.warn("bot error", err.toString());
+	});
+	CoolQ.on("socket.error", async (err) => {
+		log.warn("bot socket error", err.toString());
+	});
+	CoolQ.on("socket.close", async (err) => {
+		log.warn("bot socket close", err.toString());
+	});
 	CoolQ.on("message", messageHandler);
+	CoolQ.connect();
  }
 main();

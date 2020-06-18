@@ -19,8 +19,6 @@ This project may possibly be working only with Hisoutensoku ver 1.10a. Versions 
 * Create a `config.yaml` with the following below.
 
 ```yaml
-address: 0.0.0.0 # CoolQ listen address and port. Leave it.
-port: 80
 coolq: # CoolQ config. The docker-compose config below meets this configuration.
   host: coolq
   accessToken: aaaaa
