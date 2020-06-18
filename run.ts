@@ -1,6 +1,6 @@
 import bunyan from "bunyan";
 import fs from "fs";
-import CQHttp from "cqhttp";
+import { CQWebSocket } from "cq-websocket";
 import _ from "underscore";
 import yaml from "yaml";
 import { spawn } from "child_process";
@@ -8,9 +8,10 @@ import { Attacker } from "./attacker";
 import moment from "moment";
 
 interface CoolQConfig {
-	apiRoot: string;
+	host: string;
+	port: number;
+	qq: number;
 	accessToken: string;
-	secret: string;
 }
 
 interface Config {
@@ -26,7 +27,7 @@ const log = bunyan.createLogger({
 	name: "hisoutensoku-terminator"
 });
 
-let CoolQ: CQHttp, config: Config;
+let CoolQ: CQWebSocket, config: Config;
 
 function sleep(time: number): Promise<void> {
 	return new Promise((resolve, reject) => {
@@ -79,8 +80,10 @@ async function messageHandler(data: any): Promise<void> {
 
 async function main(): Promise<void> {
 	config = yaml.parse(await fs.promises.readFile("./config.yaml", "utf8")) as Config;
-	CoolQ = new CQHttp(config.coolq);
+	CoolQ = new CQWebSocket(config.coolq);
+	CoolQ.on("ready", async () => {
+		log.info("bot init finished.");
+	})
 	CoolQ.on("message", messageHandler);
-	CoolQ.listen(config.port, config.address);
  }
 main();

@@ -22,9 +22,9 @@ This project may possibly be working only with Hisoutensoku ver 1.10a. Versions 
 address: 0.0.0.0 # CoolQ listen address and port. Leave it.
 port: 80
 coolq: # CoolQ config. The docker-compose config below meets this configuration.
-  apiRoot: http://coolq:5700
+  host: coolq
   accessToken: aaaaa
-  secret: bbbbb
+  qq: 1111111111 # Your QQ account here
 attackTimeout: 10000 # The timeout the fake clients would wait for connection.
 floodQQGroups: # Target QQ groups
   - 111111111
@@ -48,10 +48,9 @@ services:
       VNC_PASSWD: YOUR_VNC_PASSWORD_HERE # Please change this
       COOLQ_ACCOUNT: 1111111111 # Your QQ account here
       FORCE_ENV: 'true'
-      CQHTTP_POST_URL: http://terminator
-      CQHTTP_SERVE_DATA_FILES: 'yes'
+      CQHTTP_USE_WS: 'true'
+      CQHTTP_SERVE_DATA_FILES: 'true'
       CQHTTP_ACCESS_TOKEN: aaaaa # The above access token and secrets. Since the containers are not exposed to the public, you may not use strong ones.
-      CQHTTP_SECRET: bbbbb
   terminator:
     restart: always
     image: nanahira/hisoutensoku-terminator
