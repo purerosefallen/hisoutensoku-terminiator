@@ -103,10 +103,11 @@ dist
 # TernJS port file
 .tern-port
 
-/*.js
-/config.yaml
-/*.txt
+/build
+/output
 
+.git*
 .dockerignore
-.gitignore
 Dockerfile
+.gitlab-ci.yml
+/config.yaml

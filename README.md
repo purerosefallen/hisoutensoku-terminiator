@@ -20,8 +20,11 @@ This project may possibly be working only with Hisoutensoku ver 1.10a. Versions 
 
 ```yaml
 coolq: # CoolQ config. The docker-compose config below meets this configuration.
-  host: coolq
-  qq: 1111111111 # Your QQ account here
+  type: ws
+  server: coolq
+  selfId: 1111111111 # Your QQ account here
+  token: qweqwe
+  secret: asdasd
 attackTimeout: 10000 # The timeout the fake clients would wait for connection.
 floodQQGroups: # Target QQ groups
   - 111111111
@@ -42,6 +45,8 @@ services:
     environment:
       UIN: 1111111111 # Your QQ account here
       PASS: aaaaaaaaa # Your QQ password here
+      ACCESS_TOKEN: qweqwe
+      SECRET: asdasd
   terminator:
     restart: always
     image: nanahira/hisoutensoku-terminator
