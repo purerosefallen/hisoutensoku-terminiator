@@ -21,7 +21,7 @@ This project may possibly be working only with Hisoutensoku ver 1.10a. Versions 
 ```yaml
 coolq: # CoolQ config. The docker-compose config below meets this configuration.
   type: ws
-  server: coolq
+  server: ws://coolq:6700
   selfId: 1111111111 # Your QQ account here
   token: qweqwe
   secret: asdasd
