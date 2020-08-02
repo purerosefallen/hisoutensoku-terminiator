@@ -21,7 +21,6 @@ This project may possibly be working only with Hisoutensoku ver 1.10a. Versions 
 ```yaml
 coolq: # CoolQ config. The docker-compose config below meets this configuration.
   host: coolq
-  accessToken: aaaaa
   qq: 1111111111 # Your QQ account here
 attackTimeout: 10000 # The timeout the fake clients would wait for connection.
 floodQQGroups: # Target QQ groups
@@ -37,18 +36,12 @@ version: '2.4'
 services:
   coolq:
     restart: always
-    image: richardchien/cqhttp
-    ports:
-      - 9000:9000
+    image: nanahira/go-cqhttp
     volumes:
-      - ./coolq:/home/usr/coolq
+      - ./coolq:/data
     environment:
-      VNC_PASSWD: YOUR_VNC_PASSWORD_HERE # Please change this
-      COOLQ_ACCOUNT: 1111111111 # Your QQ account here
-      FORCE_ENV: 'true'
-      CQHTTP_USE_WS: 'true'
-      CQHTTP_SERVE_DATA_FILES: 'true'
-      CQHTTP_ACCESS_TOKEN: aaaaa # The above access token and secrets. Since the containers are not exposed to the public, you may not use strong ones.
+      UIN: 1111111111 # Your QQ account here
+      PASS: aaaaaaaaa # Your QQ password here
   terminator:
     restart: always
     image: nanahira/hisoutensoku-terminator
