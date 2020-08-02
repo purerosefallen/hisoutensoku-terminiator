@@ -1,6 +1,5 @@
 import bunyan from "bunyan";
 import fs from "fs";
-import { CQWebSocket, CQEvent, CQTag } from "cq-websocket";
 import _ from "underscore";
 import yaml from "yaml";
 import { spawn } from "child_process";
