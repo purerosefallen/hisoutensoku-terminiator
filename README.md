@@ -47,6 +47,7 @@ services:
       PASS: aaaaaaaaa # Your QQ password here
       ACCESS_TOKEN: qweqwe
       SECRET: asdasd
+      USE_DB: true
   terminator:
     restart: always
     image: nanahira/hisoutensoku-terminator
